@@ -214,7 +214,7 @@
                             </ul>
                         </div>
                         <div class="col-md-3">
-                            <button id="btn-send-file" type="button" class="btn btn-success btn-block btn-sm">Enviar arquivos</button>
+                            <button id="btn-send-file" type="button" class="btn btn-success btn-block btn-sm" onclick="dropBoxController._adicionarArquivos(event)">Enviar arquivos</button>
                             <input type="file" id="files" style="display:none;" multiple />
                             <button id="btn-new-folder" type="button" class="btn btn-link btn-block btn-sm " style="color: #fff;"><i class="ion-android-folder-open" style="color: #fff;"></i>Novo diretório</button>
                             <button id="btn-rename" type="button" class="btn btn-link btn-block btn-sm "style="color: #fff;"><i class="ion-edit"style="color: #fff;"></i>Editar</button>
@@ -248,7 +248,9 @@
     </div>
 
     <script src="src/controller/DropboxController.js"></script>
-    <script src="src/index.js"></script>
+    <script>
+        let dropBoxController = new DropBoxController()
+    </script>
 </body>
 
 </html>

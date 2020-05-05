@@ -1,32 +1,34 @@
 class DropBoxController {
     constructor(){
 
-        this.btnSendFileElemento = document.querySelector('#btn-send-file')
+        let $ =  document.querySelector.bind(document)
 
-        this.inputFileElemento = document.querySelector('#files')
+        this._btnSendFileElemento = $('#btn-send-file')
 
-        this.snackModalElemento = document.querySelector('#react-snackbar-root')
+        this._inputFileElemento = $('#files')
 
-        this.initEvents()
+        this._snackModalElemento = $('#react-snackbar-root')
+
+        this._adicionarArquivos()
     }
 
-    initEvents(){
+    _adicionarArquivos(){
 
-        this.btnSendFileElemento.addEventListener('click', event => {
+        this._btnSendFileElemento.addEventListener('click', event => {
 
-            this.inputFileElemento.click()
+            this._inputFileElemento.click()
             
         })
 
-        this.inputFileElemento.addEventListener('change', event => {
+        this._inputFileElemento.addEventListener('change', event => {
 
-            this.tarefasDeEnvios(event.target.files)
+            this._tarefasDeEnvios(event.target.files)
 
-            this.snackModalElemento.style.display = "block"
+            this._snackModalElemento.style.display = "block"
         })
     }
 
-    tarefasDeEnvios(arquivos) {
+    _tarefasDeEnvios(arquivos) {
 
         let promesas = [];
 
