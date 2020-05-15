@@ -15,7 +15,25 @@ class DropBoxController {
 
         this._timeleftElemento = this._snackModalElemento.querySelector('.timeleft')
 
+        this._conexaoComFirebase()
+
         this._adicionarArquivos()
+    }
+
+    _conexaoComFirebase() {
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBt5H6Pxhm9WC0CJbJYSEC73Ntum6lzkY8",
+            authDomain: "dropbox-tipscode.firebaseapp.com",
+            databaseURL: "https://dropbox-tipscode.firebaseio.com",
+            projectId: "dropbox-tipscode",
+            storageBucket: "dropbox-tipscode.appspot.com",
+            messagingSenderId: "92605749028",
+            appId: "1:92605749028:web:5da331596c381c5474c5b1",
+            measurementId: "G-5ZWD88D426"
+          };
+          // Initialize Firebase
+          firebase.initializeApp(firebaseConfig);
     }
 
     _adicionarArquivos(){
