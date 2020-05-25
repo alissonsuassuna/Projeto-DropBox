@@ -46,12 +46,38 @@ class DropBoxController {
 
         this._inputFileElemento.addEventListener('change', event => {
 
-            this._tarefasDeEnvios(event.target.files)
+            this._btnSendFileElemento.disabled = true
+
+            this._tarefasDeEnvios(event.target.files).then( respostas => {
+
+                respostas.forEach(resp => {
+                    console.log(resp.arquivos['input-file'])
+
+                    this._pegandoReferenciaDoFirebase().push().set(resp.arquivos['input-file'])
+                })
+
+                this._envioFinalizado()
+            }).catch (erro => {
+              
+                this._envioFinalizado()
+                console.orror(erro)
+            })
 
             this._mostrarModal()
-
             this._inputFileElemento.value = ''
         })
+    }
+
+    _envioFinalizado(){
+
+        this._mostrarModal(false)
+        this._inputFileElemento.value = ''
+        this._btnSendFileElemento.disabled = false
+
+    }
+
+    _pegandoReferenciaDoFirebase(){
+        return firebase.database().ref('arquivos')
     }
 
     _mostrarModal(mostrar = true) {
@@ -73,8 +99,6 @@ class DropBoxController {
 
                 ajax.onload = event => {
 
-                    this._mostrarModal(false)
-
                     try {
                         resolve(JSON.parse(ajax.responseText))
                     } catch (error) {
@@ -83,8 +107,6 @@ class DropBoxController {
                 }
 
                 ajax.onerror = event => {
-
-                    this._mostrarModal(false)
                     reject(event)
                 }
 
