@@ -15,9 +15,13 @@ class DropBoxController {
 
         this._timeleftElemento = this._snackModalElemento.querySelector('.timeleft')
 
+        this._listFilesElemento = $('#list-of-files-and-directories')
+
         this._conexaoComFirebase()
 
         this._adicionarArquivos()
+
+        this._leituraDeDadosFirebase()
     }
 
     _conexaoComFirebase() {
@@ -334,13 +338,37 @@ class DropBoxController {
         }
     }
 
-    _pequeArquivoView(){
+    _pequeArquivoDaView(arquivo, key) {
+     
+        let li = document.createElement('li')                    
 
-        return `
-        <li>
-           ${this._pegueIconeView(arquivo)}
-            <div class="name text-center" style="color: #fff;">${arquivo.name}</div>
-        </li>
+        li.dataset.chave = key                                               
+
+        li.innerHTML = `
+            ${this._pequeIconeView(arquivo)}
+            <div class="name text-center">${arquivo.name}</div>
         `
+        return li
     }
+
+    _leituraDeDadosFirebase() {
+
+        this._pegandoReferenciaDoFirebase().on('value', fotoDeFirebase => {
+
+            this._listFilesElemento.innerHTML = '' 
+            
+            fotoDeFirebase.forEach(fotoDeFirebaseItem => {
+                let chave = fotoDeFirebaseItem.key
+                let dado = fotoDeFirebaseItem.val()
+              
+                console.log(chave, dado) 
+
+
+                this._listFilesElemento.appendChild(this._pequeArquivoDaView(dado, chave)) 
+
+            })
+        })
+    }
+
+
 }
