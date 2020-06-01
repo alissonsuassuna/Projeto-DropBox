@@ -1,6 +1,8 @@
 class DropBoxController {
     constructor(){
 
+        this._teveUmaSelecao = new Event('selecaomudou')
+
         let $ =  document.querySelector.bind(document)
 
         this._btnSendFileElemento = $('#btn-send-file')
@@ -41,6 +43,11 @@ class DropBoxController {
     }
 
     _adicionarArquivos(){
+
+        this._listFilesElemento.addEventListener('selecaomudou', event => {
+
+            console.log('seleção mudou, event: selecaomudou')
+        })
 
         this._btnSendFileElemento.addEventListener('click', event => {
 
@@ -348,6 +355,7 @@ class DropBoxController {
             ${this._pequeIconeView(arquivo)}
             <div class="name text-center">${arquivo.name}</div>
         `
+       this._inicioDoEvento(li)
         return li
     }
 
@@ -360,9 +368,6 @@ class DropBoxController {
             fotoDeFirebase.forEach(fotoDeFirebaseItem => {
                 let chave = fotoDeFirebaseItem.key
                 let dado = fotoDeFirebaseItem.val()
-              
-                console.log(chave, dado) 
-
 
                 this._listFilesElemento.appendChild(this._pequeArquivoDaView(dado, chave)) 
 
@@ -370,5 +375,49 @@ class DropBoxController {
         })
     }
 
+    _inicioDoEvento(li) {
 
+        li.addEventListener('click', event => {
+
+            this._listFilesElemento.dispatchEvent(this._teveUmaSelecao)
+
+            if(event.shiftKey) {
+
+                let primeiroLi = this._listFilesElemento.querySelector('.selected')
+
+                if(primeiroLi) {
+
+                    let inicioDoIntex
+                    let finalDoIndex
+                    let lis = li.parentElement.childNodes
+                    lis.forEach( (elemento, index) => {
+
+                        if( primeiroLi === elemento) inicioDoIntex = index
+                        if( li === elemento ) finalDoIndex = index
+                    } )
+
+                    let arrayOrdenado = [inicioDoIntex, finalDoIndex].sort()
+
+                    lis.forEach( (el, i) => {
+
+                        if(i >= arrayOrdenado[0] && i <= arrayOrdenado[1]){
+                            el.classList.add('selected')
+                        }
+                    })
+
+                    return true
+                }
+            }
+
+            if(!event.ctrlKey) {
+
+                this._listFilesElemento.querySelectorAll('li.selected').forEach( elemento => {
+
+                    elemento.classList.remove('selected')
+                })
+            }
+
+            li.classList.toggle('selected')
+        })
+    }
 }
