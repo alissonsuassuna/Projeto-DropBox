@@ -19,6 +19,10 @@ class DropBoxController {
 
         this._listFilesElemento = $('#list-of-files-and-directories')
 
+        this._btnNewFolder = $('#btn-new-folder')
+        this._btnRename = $('#btn-rename')
+        this._btnDelete = $('#btn-delete')
+
         this._conexaoComFirebase()
 
         this._adicionarArquivos()
@@ -42,11 +46,40 @@ class DropBoxController {
           firebase.initializeApp(firebaseConfig);
     }
 
+    _pegarSelecao() {
+        return this._listFilesElemento.querySelectorAll('.selected')
+    }
+
     _adicionarArquivos(){
+
+        this._btnRename.addEventListener('click', e => {
+
+            let li = this._pegarSelecao()[0]
+
+            let arquivo = JSON.parse(li.dataset.arquivo)
+
+            let novoNome = prompt('Digite o novo nome')
+
+            if(novoNome) {
+
+                arquivo.name = novoNome
+
+                this._pegandoReferenciaDoFirebase().child(li.dataset.chave).set(arquivo)
+            }
+        })
 
         this._listFilesElemento.addEventListener('selecaomudou', event => {
 
-            console.log('seleção mudou, event: selecaomudou')
+            if(this._pegarSelecao().length === 0) {
+                this._btnDelete.style.display = 'none'
+                this._btnRename.style.display = 'none'
+            }else if(this._pegarSelecao().length === 1) {
+                this._btnDelete.style.display = 'block'
+                this._btnRename.style.display = 'block'
+            } else {
+                this._btnDelete.style.display = 'block'
+                this._btnRename.style.display = 'none'
+            }
         })
 
         this._btnSendFileElemento.addEventListener('click', event => {
@@ -349,7 +382,8 @@ class DropBoxController {
      
         let li = document.createElement('li')                    
 
-        li.dataset.chave = key                                               
+        li.dataset.chave = key  
+        li.dataset.arquivo = JSON.stringify(arquivo)                                             
 
         li.innerHTML = `
             ${this._pequeIconeView(arquivo)}
@@ -379,8 +413,6 @@ class DropBoxController {
 
         li.addEventListener('click', event => {
 
-            this._listFilesElemento.dispatchEvent(this._teveUmaSelecao)
-
             if(event.shiftKey) {
 
                 let primeiroLi = this._listFilesElemento.querySelector('.selected')
@@ -404,7 +436,7 @@ class DropBoxController {
                             el.classList.add('selected')
                         }
                     })
-
+                    this._listFilesElemento.dispatchEvent(this._teveUmaSelecao)
                     return true
                 }
             }
@@ -418,6 +450,7 @@ class DropBoxController {
             }
 
             li.classList.toggle('selected')
+            this._listFilesElemento.dispatchEvent(this._teveUmaSelecao)
         })
     }
 }
