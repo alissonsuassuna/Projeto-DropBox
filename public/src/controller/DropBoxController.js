@@ -1,6 +1,8 @@
 class DropBoxController {
     constructor(){
 
+        this._pastaAtual = ['raiz']
+
         this._teveUmaSelecao = new Event('selecaomudou')
 
         let $ =  document.querySelector.bind(document)
@@ -50,7 +52,56 @@ class DropBoxController {
         return this._listFilesElemento.querySelectorAll('.selected')
     }
 
+    _tarefaDeDeletar(){
+
+        let promessas = [];
+
+        this._pegarSelecao().forEach(li => {
+
+            let arquivo = JSON.parse(li.dataset.arquivo)
+
+            let formDate = new FormData()
+            let chave = li.dataset.chave
+
+            formDate.append('path', arquivo.path)
+            formDate.append('chave', chave)
+
+            promessas.push(this._ajax('/arquivo', 'DELETE', formDate))
+
+        })
+        return Promise.all(promessas)
+    }
+
     _adicionarArquivos(){
+
+        this._btnNewFolder.addEventListener('click', e => {
+
+            let nomeDaPasta = prompt('Informe o nome da pasta')
+
+            if(nomeDaPasta) {
+
+                this._pegandoReferenciaDoFirebase().push().set({
+                    name: nomeDaPasta,
+                    type: 'folder',
+                    path: this._pastaAtual.join('/')
+                })
+            }
+        })
+
+        this._btnDelete.addEventListener('click', e => {
+
+            this._tarefaDeDeletar().then( respostas => {
+                
+                respostas.forEach(resp => {
+
+                    if(resp.campo.chave) {
+                        this._pegandoReferenciaDoFirebase().child(resp.campo.chave).remove()
+                    }
+                })
+            }).catch(err => {
+                console.log(err)
+            })
+        })
 
         this._btnRename.addEventListener('click', e => {
 
@@ -129,45 +180,54 @@ class DropBoxController {
         this._snackModalElemento.style.display = (mostrar) ? 'block' : 'none'
     }
 
+    _ajax(url, metodo = 'GET', formDate = new FormData(), onprogress = function(){}, comecouEnvio = function(){} ){
+
+      return new Promise( (resolve, reject) =>{
+
+        let ajax = new XMLHttpRequest()
+
+        ajax.open(metodo, url)
+
+        ajax.onload = event => {
+
+            try {
+                resolve(JSON.parse(ajax.responseText))
+            } catch (error) {
+                reject(error)
+            }
+        }
+
+        ajax.onerror = event => {
+            reject(event)
+        }
+
+        ajax.upload.onprogress = onprogress
+
+      //  let formDate = new FormData()
+
+      //  formDate.append('input-file', arquivo )
+
+        comecouEnvio()
+
+        ajax.send(formDate)
+      } )
+    }
+
     _tarefasDeEnvios(arquivos) {
 
         let promesas = [];
 
         [...arquivos].forEach(arquivo => {
 
-            promesas.push(new Promise( (resolve, reject) =>{
+            let formDate = new FormData()
 
-                let ajax = new XMLHttpRequest()
+            formDate.append('input-file', arquivo)
 
-                ajax.open('POST', '/arquivosGuardados')
-
-                ajax.onload = event => {
-
-                    try {
-                        resolve(JSON.parse(ajax.responseText))
-                    } catch (error) {
-                        reject(error)
-                    }
-                }
-
-                ajax.onerror = event => {
-                    reject(event)
-                }
-
-                ajax.upload.onprogress = event => {
-
-                    this._progressoDeEnvio(event, arquivo)
-        
-                }
-
-                let formDate = new FormData()
-
-                formDate.append('input-file', arquivo )
-
+            promesas.push(this._ajax('arquivosGuardados', 'POST', formDate, ()=> {
+                this._progressoDeEnvio(event, arquivo)
+            }, ()=> {
                 this._comecouEnvio = Date.now()
-
-                ajax.send(formDate)
-            } ))
+            }))
         })
 
         return Promise.all(promesas)
