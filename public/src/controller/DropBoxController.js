@@ -7,6 +7,8 @@ class DropBoxController {
 
         let $ =  document.querySelector.bind(document)
 
+        this._navElemento = $('#browse-location')
+
         this._btnSendFileElemento = $('#btn-send-file')
 
         this._inputFileElemento = $('#files')
@@ -29,7 +31,8 @@ class DropBoxController {
 
         this._adicionarArquivos()
 
-        this._leituraDeDadosFirebase()
+        this._abrirPasta()
+
     }
 
     _conexaoComFirebase() {
@@ -171,8 +174,12 @@ class DropBoxController {
 
     }
 
-    _pegandoReferenciaDoFirebase(){
-        return firebase.database().ref('arquivos')
+    _pegandoReferenciaDoFirebase(path){
+
+        if(!path) {
+            path = this._pastaAtual.join('/')
+        }
+        return firebase.database().ref(path)
     }
 
     _mostrarModal(mostrar = true) {
@@ -455,6 +462,8 @@ class DropBoxController {
 
     _leituraDeDadosFirebase() {
 
+        this._ultimaPasta = this._pastaAtual.join('/')
+
         this._pegandoReferenciaDoFirebase().on('value', fotoDeFirebase => {
 
             this._listFilesElemento.innerHTML = '' 
@@ -463,13 +472,93 @@ class DropBoxController {
                 let chave = fotoDeFirebaseItem.key
                 let dado = fotoDeFirebaseItem.val()
 
-                this._listFilesElemento.appendChild(this._pequeArquivoDaView(dado, chave)) 
+               
+                if(dado.type) {
+
+                    this._listFilesElemento.appendChild(this._pequeArquivoDaView(dado, chave)) 
+
+                }
+
 
             })
         })
     }
 
+    _abrirPasta(){
+
+        if(this._ultimaPastar) {
+            this._pegandoReferenciaDoFirebase(this._ultimaPastar).off('value')
+        }
+
+        this._mostrarBreadcrump()
+        this._leituraDeDadosFirebase()
+
+    }
+
+    _mostrarBreadcrump() {
+
+        let nav = document.createElement('nav')
+        let caminhos = []
+
+        for(let i = 0; i < this._pastaAtual.length; i++){
+
+            let nomeDaPasta = this._pastaAtual[i]
+            let span = document.createElement('span')
+
+            caminhos.push(nomeDaPasta)
+
+            if( (i + 1) === this._pastaAtual.length ){
+
+                span.innerHTML = nomeDaPasta
+
+            } else {
+                
+                span.className = 'breadcrumb-segment__wrapper'
+                span.innerHTML = `
+                <span class="ue-effect-container uee-BreadCrumbSegment-link-0">
+                    <a href="#" data-path="${caminhos.join('/')}" class="breadcrumb-segment">${nomeDaPasta}</a>
+                </span>
+                <svg width="24" height="24" viewBox="0 0 24 24" class="mc-icon-template-stateless" style="top: 4px; position: relative;">
+                    <title>arrow-right</title>
+                    <path d="M10.414 7.05l4.95 4.95-4.95 4.95L9 15.534 12.536 12 9 8.464z" fill="#637282" fill-rule="evenodd"></path>
+                </svg>
+                `
+
+            }
+
+            nav.appendChild(span)
+        }
+
+        this._navElemento.innerHTML = nav.innerHTML
+
+        this._navElemento.querySelectorAll('a').forEach( a => {
+
+            a.addEventListener('click', e => {
+
+                e.preventDefault()
+
+                this._pastaAtual = a.dataset.path.split('/')
+
+                this._abrirPasta()
+            })
+        })
+
+    
+    }
     _inicioDoEvento(li) {
+
+        li.addEventListener('dblclick', e => {
+
+            let arquivo = JSON.parse(li.dataset.arquivo)
+
+            if(arquivo.type === 'folder') {
+
+                this._pastaAtual.push(arquivo.name)
+                this._abrirPasta()
+            }else {
+                window.open('/arquivo?path=' + arquivo.path)
+            }
+        })
 
         li.addEventListener('click', event => {
 

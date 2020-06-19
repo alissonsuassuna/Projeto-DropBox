@@ -10,6 +10,26 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
+router.get('/arquivo', (req, res) => {
+
+  let path = './' + req.query.path
+
+  if(fs.existsSync(path)) {
+
+    fs.readFile(path, (err, data) =>{
+
+      if(err) {
+        console.error(err)
+        res.status(400).json({
+          error: err
+        })
+      } else {
+        res.status(200).end(data)
+      }
+    })
+  }
+})
+
 router.delete('/arquivo', (req, res) => {
 
   let formulario = new formidable.IncomingForm({
